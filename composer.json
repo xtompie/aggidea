@@ -1,0 +1,12 @@
+{
+    "name": "xtompie/aggidea",
+    "autoload": {
+        "psr-4": {
+            "Xtompie\\Aggidea\\": "src/"
+        }
+    },
+    "require": {
+        "moneyphp/money": "^3.3",
+        "ramsey/uuid": "^4.2"
+    }
+}
