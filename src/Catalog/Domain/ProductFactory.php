@@ -18,7 +18,7 @@ class ProductFactory
         return new Product(
             id: $this->idGenerator->id(),
             title: $title,
-            price: $price,
+            price: $price
         );
     }
 }
