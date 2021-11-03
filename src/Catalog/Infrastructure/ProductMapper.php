@@ -32,4 +32,13 @@ class ProductMapper implements EntityMapper
             'price' => $this->priceMapper->primitive($product->price()),
         ];
     }
+
+    public function upsert($task, $table, $data, $key)
+    {
+        if ($task == 'insert' && $table == 'article') {
+            $data['created_at'] = time();
+        }
+
+        return $data;
+    }
 }

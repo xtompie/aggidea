@@ -74,3 +74,53 @@ interface OrderAcceptedEvent {
 interface OrderCompletedEvent{
     public function id(): string;
 }
+
+[
+    '_table' => 'order',
+    'id' => '',
+    'user_id' => '',
+    'sum' => $this->priceMapper->primitive($price),
+    '_rel' => [
+        'address' => [
+            [
+                '_table' => 'order_address',
+                'id' => $order->address->billing->id,
+                'street' => $order->address->billing->street,
+                'type' => 'billing',
+            ]
+        ],
+        'seller' => map($order->sellers(), fn (OrderSeller $orderSeller) => [
+            '_table' => 'order_seller',
+            'id' => $orderSeller->id(),
+            'order_id' => $order->id(),
+            'seller_id' => $orderSeller->sellerId(),
+            'status' => 'new',
+            '_rel'  => [
+                'line' => map($orderSeller->lines(), fn(OrderLine $orderLine) => [
+                    '_table' => 'order_article',
+                    'id' => $orderLine->id(),
+                    ''
+                ]),
+            ]
+        ]),
+
+    ]
+];
+
+interface db {
+
+    public function upsert($table, $key, $data);
+    public function delete($table, $ids);
+}
+
+function snapshoter()
+{
+    return Snapshooter::new()
+        ->table('order')
+        ->data(fn(Order $order) => [
+            'id' => $order->id(),
+            'user_id' => $order->userId(),
+            'status' => $oder->status(),
+        ])
+        ->entities('seller', fn(Order $order) => $order->sellers(), )
+}
