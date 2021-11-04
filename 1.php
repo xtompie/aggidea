@@ -63,8 +63,35 @@ $express = [
             ],
             'x_data' => $model->commnets()[0]->text(),
             '_on_update' => []
-        ])
+        ]),
+        'article_data2' => [
+            [
+                'table' => 'article_data',
+                'id' => [
+                    'id' => '1234'
+                ],
+                'data' => [
+                    'stat' => '12'
+                ],
+                'rel' => [
+                    'a' => [
 
+                    ]
+                ]
+            ]
+        ],
+
+        'article_data3' => [
+            [
+                '_table' => 'article_data',
+                '_id' => [
+                    'id' => '1234'
+                ],
+                'stat' => '12',
+                '_rel_a' =>
+                ]
+            ]
+        ],
 
     ]
 ];
