@@ -7,5 +7,5 @@ namespace Xtompie\Aggidea\Catalog\Domain;
 interface ProductRepository
 {
     public function findById(string $id): ?Product;
-    public function save(Product $product): Product;
+    public function save(Product $product);
 }

@@ -8,7 +8,8 @@ class OrderSeller
 {
     public function __construct(
         protected string $sellerId,
-        protected OrderLineCollection $lines,
+        protected OrderSellerStatus $status,
+        protected OrderProductCollection $products,
     ) {}
 
     public function sellerId(): string
@@ -16,8 +17,13 @@ class OrderSeller
         return $this->sellerId;
     }
 
-    public function lines(): OrderLineCollection
+    public function status(): OrderSellerStatus
     {
-        return new OrderLineCollection([]);
+        return $this->status;
+    }
+
+    public function products(): OrderProductCollection
+    {
+        return $this->products;
     }
 }

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Xtompie\Aggidea\Ordering\Domain;
 
-class OrderLineCollection
+class OrderProductCollection
 {
     public function __construct(
         protected array $collection,
     ) {}
 
     /**
-     * @return OrderLine[]
+     * @return OrderProduct[]
      */
     public function all(): array
     {

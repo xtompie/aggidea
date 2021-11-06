@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Xtompie\Aggidea\Catalog\Infrastructure;
 
 use Xtompie\Aggidea\Catalog\Domain\Product;
-use Xtompie\Aggidea\Shared\Infrastructure\EntityMapper;
+use Xtompie\Aggidea\Shared\Infrastructure\AggregateORM;
 use Xtompie\Aggidea\Shared\Infrastructure\PriceMapper;
 
-class ProductMapper implements EntityMapper
+class ProductORM implements AggregateORM
 {
     public function __construct(
         protected PriceMapper $priceMapper,
