@@ -13,7 +13,7 @@ class PriceSerializer
         return new Price($primitive);
     }
 
-    public function scalar(Price $price): int
+    public function primitive(Price $price): int
     {
         return $price->value();
     }

@@ -4,15 +4,24 @@ declare(strict_types=1);
 
 namespace Xtompie\Aggidea\Shared\Infrastructure;
 
-/**
- * Tuple Query Language = ACQL + auto fetch related tuples
- */
-class TQL
+class ProjectionFetcher
 {
-    public function __construct(
-        protected ACQL $acql,
-    ) {}
+    protected callable $fetcher;
 
+    public function __construct(
+    ) {
+    }
+
+    public function fetch(array $pql): ?array
+    {
+        return $this->fetchAll($pql)[0] ?? null;
+    }
+
+    public function fetchAll(array $pql): array
+    {
+        return [];
+    }
+}
     /**
      * Fetches tuples and related tuples
      *
@@ -40,17 +49,9 @@ class TQL
      * ]
      * only 3 sql query will be executed
      *
-     * @param array $tql
-     * @return string SQL statement
      */
-    public function query(array $tql, callable $escaper, callable $fetcher): array
-    {
+
         // to pierwsze to tez task, ustawiam task i puszczam process
         // wyciagam relsy
         // queue z taskami przetwarzania relsow, task ma path
         // indeks gdzie co bylo
-
-        return [];
-    }
-
-}

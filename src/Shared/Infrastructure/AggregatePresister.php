@@ -4,20 +4,17 @@ declare(strict_types=1);
 
 namespace Xtompie\Aggidea\Shared\Infrastructure;
 
-class AggregatePresister
+class ProjectionPresister
 {
     public function __construct(
-        protected AggregatePresisterDAO $dao,
+        protected ProjectionPresisterDAO $dao,
     ) {}
 
-    public function presist(?object $aggregate, AggregateORM $orm, callable $presentAggregateProvider)
+    public function presist(?array $future, callable $presentProvider)
     {
-        $this->dao->transaction(function () use ($aggregate, $orm, $presentAggregateProvider) {
-            $present = $presentAggregateProvider($aggregate);
-            $this->synchronizeProjections(
-                $present === null ? null : $orm->projection($present),
-                $aggregate === null ? null : $orm->projection($aggregate),
-            );
+        $this->dao->transaction(function () use ($future, $presentProvider) {
+            $present = $presentProvider();
+            $this->synchronizeProjections($present, $future);
         });
     }
 
@@ -29,13 +26,13 @@ class AggregatePresister
     public function synchronizeRecords(array $present, array $future)
     {
         foreach ($this->computeInserts($present, $future) as $r) {
-            $this->dao->insert($r['table'], $r['id'], $r['data']);
+            $this->dao->insert($r['table'], $r['identity'], $r['data']);
         }
         foreach ($this->computeUpdates($present, $future) as $r) {
-            $this->dao->update($r['table'], $r['id'], $r['data']);
+            $this->dao->update($r['table'], $r['identity'], $r['data']);
         }
         foreach ($this->computeDeletes($present, $future) as $r) {
-            $this->dao->delete($r['table'], $r['id']);
+            $this->dao->delete($r['table'], $r['identity']);
         }
     }
 
@@ -59,9 +56,9 @@ class AggregatePresister
     protected function record($projection): array
     {
         return [
-            sha1(serialize([$projection['table'], $projection['id']])) => [
+            sha1(serialize([$projection['table'], $projection['identity']])) => [
                 'table' => $projection['table'],
-                'id' => $projection['id'],
+                'identity' => $projection['identity'],
                 'data' => $projection['data'] ?? [],
                 'state' => sha1(serialize($projection['data']))
             ]

@@ -9,21 +9,31 @@ use Xtompie\Aggidea\Ordering\Domain\CheckoutRepository as DomainCheckoutReposito
 
 class CheckoutRepository implements DomainCheckoutRepository
 {
-    public function __construct(
-        protected CheckoutORM $checkoutORM,
-    ) {}
-
     public function findById(string $id): ?Checkout
     {
         $checkout = $_SESSION['checkout'][$id];
         if (!$checkout) {
             return null;
         }
-        return $this->checkoutORM->aggregate($checkout);
+        return $this->aggregate($checkout);
     }
 
     public function save(Checkout $checkout)
     {
-        $_SESSION['checkout'][$checkout->id()] = $this->checkoutORM->projection($checkout)->value();
+        $_SESSION['checkout'][$checkout->id()] = $this->tuple($checkout);
+    }
+
+    public function aggregate(array $tuple): Checkout
+    {
+        return new Checkout(
+            id: $tuple['id'],
+        );
+    }
+
+    public function tuple(Checkout $checkout): array
+    {
+        return [
+            'id' => $checkout->id(),
+        ];
     }
 }
