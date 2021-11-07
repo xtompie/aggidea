@@ -6,7 +6,7 @@ namespace Xtompie\Aggidea\Shared\Infrastructure;
 
 use Xtompie\Aggidea\Shared\Domain\ContactAddress;
 
-class ContactAddressMapper
+class ContactAddressSerializer
 {
     public function model(array $primitive): ContactAddress
     {

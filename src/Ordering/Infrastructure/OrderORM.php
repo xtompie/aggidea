@@ -12,13 +12,13 @@ use Xtompie\Aggidea\Ordering\Domain\OrderSellerCollection;
 use Xtompie\Aggidea\Ordering\Domain\OrderSellerStatus;
 use Xtompie\Aggidea\Ordering\Domain\OrderStatus;
 use Xtompie\Aggidea\Shared\Infrastructure\Arr;
-use Xtompie\Aggidea\Shared\Infrastructure\ContactAddressMapper;
+use Xtompie\Aggidea\Shared\Infrastructure\ContactAddressSerializer;
 use Xtompie\Aggidea\Shared\Infrastructure\AggregateORM;
 
 class OrderORM implements AggregateORM
 {
     public function __construct(
-        protected ContactAddressMapper $contactAddressMapper,
+        protected ContactAddressSerializer $contactAddressSerializer,
         protected OrderMig $orderMig,
     ) {}
 
@@ -29,7 +29,7 @@ class OrderORM implements AggregateORM
         return new Order(
             id: $tuple['id'],
             status: new OrderStatus($tuple['status']),
-            billingAddress: $this->contactAddressMapper->model($tuple['billing_address']),
+            billingAddress: $this->contactAddressSerializer->model($tuple['billing_address']),
             sellers: new OrderSellerCollection(Arr::map($tuple['sellers'], fn(array $seller) => new OrderSeller(
                 sellerId: $seller['id'],
                 status: new OrderSellerStatus($seller['status']),
@@ -50,7 +50,7 @@ class OrderORM implements AggregateORM
                 'id' => $order->id(),
             ],
             'data' => [
-                'billing_address' => $this->contactAddressMapper->primitive($order->billingAddress()),
+                'billing_address' => $this->contactAddressSerializer->primitive($order->billingAddress()),
             ],
             'records' => [
                 'sellers' => Arr::map($order->sellers()->all(), fn(OrderSeller $orderSeller, $index) => [
