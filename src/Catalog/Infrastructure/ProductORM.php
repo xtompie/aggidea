@@ -6,39 +6,30 @@ namespace Xtompie\Aggidea\Catalog\Infrastructure;
 
 use Xtompie\Aggidea\Catalog\Domain\Product;
 use Xtompie\Aggidea\Shared\Infrastructure\AggregateORM;
-use Xtompie\Aggidea\Shared\Infrastructure\PriceMapper;
+use Xtompie\Aggidea\Shared\Infrastructure\PriceSerializer;
 
 class ProductORM implements AggregateORM
 {
     public function __construct(
-        protected PriceMapper $priceMapper,
+        protected PriceSerializer $priceSerializer,
     ) {}
 
-    public function model(array $tuple): Product
+    public function aggregate(array $tuple): Product
     {
         return new Product(
             id: $tuple['id'],
             title: $tuple['title'],
-            price: $this->priceMapper->model($tuple['price']),
+            price: $this->priceSerializer->model($tuple['price']),
         );
     }
 
-    public function express(Product $product): array
+    public function projection(Product $product): array
     {
         return [
-            '_table' => 'articles',
+            ':table' => 'articles',
             'id' => $product->id(),
             'title' => $product->title(),
-            'price' => $this->priceMapper->primitive($product->price()),
+            'price' => $this->priceSerializer->primitive($product->price()),
         ];
-    }
-
-    public function upsert($task, $table, $data, $key)
-    {
-        if ($task == 'insert' && $table == 'article') {
-            $data['created_at'] = time();
-        }
-
-        return $data;
     }
 }

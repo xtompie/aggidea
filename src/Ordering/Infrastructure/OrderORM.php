@@ -22,7 +22,7 @@ class OrderORM implements AggregateORM
         protected OrderMig $orderMig,
     ) {}
 
-    public function model(array $tuple): Order
+    public function aggregate(array $tuple): Order
     {
         $tuple = $this->orderMig->mig($tuple);
 
@@ -42,30 +42,63 @@ class OrderORM implements AggregateORM
         );
     }
 
-    public function express(Order $order): array
+    public function projection(Order $order): array
     {
         return [
-            ':table' => 'order',
-            'id' => $order->id(),
-            'billing_address' => $this->contactAddressMapper->primitive($order->billingAddress()),
-            'sellers' => Arr::map($order->sellers()->all(), fn(OrderSeller $orderSeller, $index) => [
-                'table' => 'order_seller',
-                ':id' => [
-                    'order_id' => $order->id(),
-                    'seller_id' => $orderSeller->sellerId(),
-                ],
-                'index' => $index,
-                'status' => $orderSeller->status()->__toString(),
-                'products' => Arr::map($orderSeller->products()->all(), fn(OrderProduct $orderProduct, $index) => [
-                    '_table' => 'order_products',
-                    'id' => $orderProduct->id(),
-                    'seller_id' => $orderSeller->sellerId(),
-                    'index' => $index,
-                    'catalogProductId' => $orderProduct->catalogProductId(),
-                    'amount' => $orderProduct->amount(),
+            'table' => 'order',
+            'id' => [
+                'id' => $order->id(),
+            ],
+            'data' => [
+                'billing_address' => $this->contactAddressMapper->primitive($order->billingAddress()),
+            ],
+            'records' => [
+                'sellers' => Arr::map($order->sellers()->all(), fn(OrderSeller $orderSeller, $index) => [
+                    'table' => 'order_seller',
+                    'id' => [
+                        'order_id' => $order->id(),
+                        'seller_id' => $orderSeller->sellerId(),
+                    ],
+                    'data' => [
+                        'index' => $index,
+                        'status' => $orderSeller->status()->__toString(),
+                    ],
+                    'records' => [
+                        'products' => Arr::map($orderSeller->products()->all(), fn(OrderProduct $orderProduct, $index) => [
+                            'table' => 'order_products',
+                            'id' => [
+                                'id' => $orderProduct->id(),
+                            ],
+                            'data' => [
+                                'seller_id' => $orderSeller->sellerId(),
+                                'index' => $index,
+                                'catalogProductId' => $orderProduct->catalogProductId(),
+                                'amount' => $orderProduct->amount(),
+                            ],
+                        ]),
+                    ],
                 ]),
-            ])
+            ],
         ];
     }
 
+    public function tql(array $tql): array
+    {
+        return array_merge($tql, [
+            'select' => '*',
+            'from' => 'order',
+            'tql:rel:sellers' => [
+                'select' => '*',
+                'from' => 'order_seller',
+                'tql:parent:order_id' => 'id',
+                'order' => 'index DESC',
+                'tql:rel:products' => [
+                    'select' => '*',
+                    'from' => 'order_products',
+                    'tql:parent:seller_id' => 'seller_id',
+                    'order' => 'index DESC',
+                ],
+            ],
+        ]);
+    }
 }

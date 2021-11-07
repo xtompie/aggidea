@@ -10,7 +10,7 @@ use Xtompie\Aggidea\Ordering\Domain\CheckoutRepository as DomainCheckoutReposito
 class CheckoutRepository implements DomainCheckoutRepository
 {
     public function __construct(
-        protected CheckoutMapper $checkoutMapper,
+        protected CheckoutORM $checkoutORM,
     ) {}
 
     public function findById(string $id): ?Checkout
@@ -19,11 +19,11 @@ class CheckoutRepository implements DomainCheckoutRepository
         if (!$checkout) {
             return null;
         }
-        return $this->checkoutMapper->model($checkout);
+        return $this->checkoutORM->aggregate($checkout);
     }
 
     public function save(Checkout $checkout)
     {
-        $_SESSION['checkout'][$checkout->id()] = $this->checkoutMapper->primitive($checkout);
+        $_SESSION['checkout'][$checkout->id()] = $this->checkoutORM->projection($checkout)->value();
     }
 }

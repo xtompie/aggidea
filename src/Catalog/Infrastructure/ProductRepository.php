@@ -8,9 +8,8 @@ use PDO;
 use Xtompie\Aggidea\Catalog\Domain\Product;
 use Xtompie\Aggidea\Catalog\Domain\ProductRepository as DomainProductRepository;
 use Xtompie\Aggidea\Shared\Infrastructure\AggregatePresister;
-use Xtompie\Aggidea\Shared\Infrastructure\AggregateProvider;
 
-class ProductRepository implements DomainProductRepository, AggregateProvider
+class ProductRepository implements DomainProductRepository
 {
     public function __construct(
         protected PDO $pdo,
@@ -26,11 +25,15 @@ class ProductRepository implements DomainProductRepository, AggregateProvider
         if (!$tuple) {
             return null;
         }
-        return $this->productORM->model($tuple);
+        return $this->productORM->aggregate($tuple);
     }
 
     public function save(Product $product)
     {
-        return $this->presister->presist($this, $this->productORM, $product);
+        return $this->presister->presist(
+            $product,
+            $this->productORM,
+            fn(Product $product) => $this->findById($product->id())
+        );
     }
 }

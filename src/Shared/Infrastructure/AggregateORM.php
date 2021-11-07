@@ -6,6 +6,6 @@ namespace Xtompie\Aggidea\Shared\Infrastructure;
 
 interface AggregateORM
 {
-    public function model(array $tuple): object;
-    public function express(object $model): array;
+    public function aggregate(array $tuple): object;
+    public function projection(object $model): array;
 }

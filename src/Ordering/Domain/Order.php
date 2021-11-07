@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Xtompie\Aggidea\Ordering\Domain;
 
+use Xtompie\Aggidea\Shared\Domain\Aggregate;
 use Xtompie\Aggidea\Shared\Domain\ContactAddress;
 
 class Order

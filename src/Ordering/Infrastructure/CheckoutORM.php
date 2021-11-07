@@ -6,16 +6,16 @@ namespace Xtompie\Aggidea\Ordering\Infrastructure;
 
 use Xtompie\Aggidea\Ordering\Domain\Checkout;
 
-class CheckoutMapper
+class CheckoutORM
 {
-    public function model(array $tuple): Checkout
+    public function aggregate(array $tuple): Checkout
     {
         return new Checkout(
             id: $tuple['id'],
         );
     }
 
-    public function primitive(Checkout $checkout): array
+    public function projection(Checkout $checkout): array
     {
         return [
             'id' => $checkout->id(),

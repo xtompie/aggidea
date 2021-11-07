@@ -79,7 +79,7 @@ interface OrderCompletedEvent{
     '_table' => 'order',
     'id' => '',
     'user_id' => '',
-    'sum' => $this->priceMapper->primitive($price),
+    'sum' => $this->priceSerializer->primitive($price),
     '_rel' => [
         'address' => [
             [

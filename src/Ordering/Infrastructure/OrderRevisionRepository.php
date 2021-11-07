@@ -13,7 +13,7 @@ class OrderRevisionRepository implements DomainOrderRevisionRepository
 {
     public function __construct(
         protected PDO $pdo,
-        protected OrderRevisionMapper $orderRevisionMapper,
+        protected OrderRevisionORM $orderRevisionORM,
         protected AggregateManager $AggregateManager,
     ) {}
 
@@ -21,7 +21,7 @@ class OrderRevisionRepository implements DomainOrderRevisionRepository
     {
         $tuple = [];
 
-        return $this->orderRevisionMapper->model($tuple);
+        return $this->orderRevisionORM->model($tuple);
     }
 
     public function save(OrderRevision $order)
