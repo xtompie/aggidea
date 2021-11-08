@@ -7,12 +7,12 @@ namespace Xtompie\Aggidea\Shared\Infrastructure;
 /**
  * Array Command Query Language
  */
-class ACQL
+class AQL
 {
     /**
      * Builds fragmenet or full raw sql query
      *
-     * $acql options:
+     * $aql options:
      * - 'select' => ['post_id', 'title' => 'post_title']  // `post_id`, `post_title` as 'title'
      * - 'select' => 'post_id, post_title as title' // post_id, post_title as title
      * - 'select' => ['|count' => '|COUNT(*)']  // COUNT(*) as count
@@ -37,21 +37,21 @@ class ACQL
      *      ['operator' => 'OR', 'post_level' => '2', 'post_level' => '3']]
      *     // post_level = '1' OR (post_level = '2' OR  post_level = '3')
      *
-     * @param array $acql
+     * @param array $aql
      * @return string SQL statement
      */
-    public function query(array $acql, callable $escaper): string
+    public function query(array $aql, callable $escaper): string
     {
         return trim(
-            $this->select($acql['select'] ?? null, $acql['prefix'] ?? null, $escaper)
-            . $this->from($acql['from'] ?? null, $escaper)
-            . $this->join($acql['join'] ?? null)
-            . $this->where($acql['where'] ?? null, $escaper)
-            . $this->group($acql['group'] ?? null)
-            . $this->having($acql['having'] ?? null, $escaper)
-            . $this->order($acql['order'] ?? null)
-            . $this->limit($acql['limit'] ?? null)
-            . $this->offset($acql['offset'] ?? null)
+            $this->select($aql['select'] ?? null, $aql['prefix'] ?? null, $escaper)
+            . $this->from($aql['from'] ?? null, $escaper)
+            . $this->join($aql['join'] ?? null)
+            . $this->where($aql['where'] ?? null, $escaper)
+            . $this->group($aql['group'] ?? null)
+            . $this->having($aql['having'] ?? null, $escaper)
+            . $this->order($aql['order'] ?? null)
+            . $this->limit($aql['limit'] ?? null)
+            . $this->offset($aql['offset'] ?? null)
         );
     }
 
@@ -124,14 +124,14 @@ class ACQL
         return implode($logical, $sql);
     }
 
-    public function command(array $acql, callable $escaper): string
+    public function command(array $aql, callable $escaper): string
     {
         return trim(
-            $this->insert($acql['insert'] ?? null, $escaper)
-            . $this->update($acql['update'] ?? null, $escaper)
-            . $this->delete($acql['delete'] ?? null, $escaper)
-            . $this->set($acql['set'] ?? null, $escaper)
-            . $this->where($acql['where'] ?? null, $escaper)
+            $this->insert($aql['insert'] ?? null, $escaper)
+            . $this->update($aql['update'] ?? null, $escaper)
+            . $this->delete($aql['delete'] ?? null, $escaper)
+            . $this->set($aql['set'] ?? null, $escaper)
+            . $this->where($aql['where'] ?? null, $escaper)
         );
     }
 

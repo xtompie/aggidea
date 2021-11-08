@@ -10,12 +10,12 @@ class ProjectionPresisterDAO
 {
     public function __construct(
         protected DAO $dao,
-        protected ACQL $acql,
+        protected AQL $aql,
     ) {}
 
     public function insert(string $table, array $identity, array $data)
     {
-        $this->dao->command($this->acql->command(
+        $this->dao->command($this->aql->command(
             ['insert' => $table, 'set' => $identity + $data],
             $this->dao->escaper(),
         ));
@@ -26,7 +26,7 @@ class ProjectionPresisterDAO
         if (!$identity) {
             throw new Exception();
         }
-        $this->dao->command($this->acql->command(
+        $this->dao->command($this->aql->command(
             ['update' => $table, 'set' => $data, 'where' => $identity],
             $this->dao->escaper(),
         ));
@@ -37,7 +37,7 @@ class ProjectionPresisterDAO
         if (!$identity) {
             throw new Exception();
         }
-        $this->dao->command($this->acql->command(
+        $this->dao->command($this->aql->command(
             ['delete' => $table, 'where' => $identity],
             $this->dao->escaper(),
         ));

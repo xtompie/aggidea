@@ -9,8 +9,7 @@ class ProjectionFetcher
     protected callable $fetcher;
 
     public function __construct(
-    ) {
-    }
+    ) {}
 
     public function fetch(array $pql): ?array
     {
@@ -25,7 +24,7 @@ class ProjectionFetcher
     /**
      * Fetches tuples and related tuples
      *
-     * $tql options ACQL and:
+     * $tql options AQL and:
      *
      * - ':tql:rel:<name>' => <TQL> - auto fetches related tuples
      * - ':tql:parent:<this_field>' => '<parent_field>'

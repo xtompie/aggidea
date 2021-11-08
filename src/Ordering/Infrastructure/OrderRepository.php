@@ -123,8 +123,7 @@ class OrderRepository implements DomainOrderRepository
     protected function query(?array $where = null, ?string $order = null, ?int $limit = null, ?int $offset = null): array
     {
         return [
-            'select' => '*',
-            'from' => 'orders',
+            'pql:from' => 'orders',
             'where' => $where,
             'order' => $order,
             'limit' => $limit,
@@ -132,15 +131,13 @@ class OrderRepository implements DomainOrderRepository
             'pql:identity' => ['id'],
             'pql:records' => [
                 'sellers' => [
-                    'select' => '*',
-                    'from' => 'order_seller',
+                    'pql:table' => 'order_seller',
                     'pql:parent:order_id' => 'id',
                     'pql:identity' => ['order_id', 'seller_id'],
                     'order' => 'index DESC',
                     'pql:records' => [
                         'products' => [
-                            'select' => '*',
-                            'from' => 'order_products',
+                            'pql:table' => 'order_products',
                             'pql:identity' => ['id'],
                             'pql:parent:seller_id' => 'seller_id',
                             'order' => 'index DESC',
