@@ -18,8 +18,17 @@ class ProjectionFetcher
 
     public function fetchAll(array $pql): array
     {
+        $projections = [];
+        $tasks = $this->tasks($pql);
+
+        $this->process(null, $projections, $pql);
         return [];
     }
+
+    // protected function process($parent, $)
+    // {
+
+    // }
 }
     /**
      * Fetches tuples and related tuples

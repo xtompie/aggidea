@@ -68,13 +68,14 @@ class AQL
                 continue;
             }
 
-            // '#(a = {a} OR b = {b})' => [{a} => '1', {b} => '2']
+            // '|(a = {a} OR b = {b})' => [{a} => '1', {b} => '2']
             if ($key[0] === '|' && is_array($value)) {
                 $key = substr($key, 1);
                 foreach ($value as $find => $replace) {
                     $key = str_replace($find, $escaper($replace), $key);
                 }
                 $sql[] = $key;
+                continue;
             }
 
             // logical operator - AND, OR
@@ -83,18 +84,10 @@ class AQL
                 continue;
             }
 
-            $comparison = '=';
-
-            if (strpos($key, ' ') !== false) {
-                list ($key, $comparison) = explode(' ', $key, 2);
-            }
-
+            // key and comparison
+            list ($key, $comparison) = preg_split('/:\s/', $key, 2);
             $key = $key[0] === '|' ? substr($key, 1) : "`$key`";
-
-
-            if  (is_array($value) && $comparison === '=') {
-                $comparison = 'IN';
-            }
+            $comparison = $comparison !== null ? $comparison : '=';
 
             switch ($comparison) {
 
@@ -177,7 +170,7 @@ class AQL
                 }
                 $sql = implode(', ', $fields);
             }
-            $sql = 'SELECT ' . ($prefix != null ? ' ' . $prefix : '') . $sql;
+            $sql = 'SELECT ' . ($prefix != null ?  $prefix . ' ' : '') . $sql;
         }
         return $sql;
     }
