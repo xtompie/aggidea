@@ -19,47 +19,55 @@ class ProjectionFetcher
     public function fetchAll(array $pql): array
     {
         $projections = [];
-        $tasks = $this->tasks($pql);
+        foreach ($this->findTasks($pql, '*') as $task) {
+            $this->processTask($projections, $task);
+        }
 
-        $this->process(null, $projections, $pql);
+        // $this->process(null, $projections, $pql);
         return [];
     }
 
-    // protected function process($parent, $)
-    // {
+    protected function findTasks($pql, $path)
+    {
+        $tasks[] = $this->createTask($pql, $path);
+        foreach((array) $pql['pql:records'] as $records) {
+            foreach($records as $records_name => $records_pql) {
+                $tasks[] = $this->findTasks($records_pql, $path . '.records.' . $records_name . '.*');
+            }
+        }
+        return $tasks;
+    }
 
-    // }
+    protected function createTask($pql, $path)
+    {
+        $task = [
+            'query' => $pql,
+            'identity' => $pql['pql:identity'],
+            'path' => $path,
+            'parent' => [],
+        ];
+        if (!isset($task['query']['select'])) {
+            $task['query']['select'] = '*';
+        }
+        if (isset($task['query']['pql:table'])) {
+            $task['query']['from'] = $task['query']['pql:table'];
+        }
+
+        $parent_prefix = 'pql:parent:';
+        foreach ($task['query'] as $k => $v) {
+            if (!str_starts_with($k, $parent_prefix)) {
+                continue;
+            }
+            $task['parent'][substr($k, strlen($parent_prefix))] = $v;
+            unset($task['query'][$k]);
+        }
+        unset($task['query']['pql:table'], $task['query']['pql:identity']);
+
+        return $task;
+    }
+
+    protected function processTask(&$projections, $task)
+    {
+
+    }
 }
-    /**
-     * Fetches tuples and related tuples
-     *
-     * $tql options AQL and:
-     *
-     * - ':tql:rel:<name>' => <TQL> - auto fetches related tuples
-     * - ':tql:parent:<this_field>' => '<parent_field>'
-     *
-     * eg. [
-     *  ':select' => '*'
-     *  ':from' => 'articles',
-     *  ':order' => 'index ASC',
-     *  ':tql:rel:paragraphs' => [
-     *    ':tql:parent:article_id' => 'id',
-     *    ':select' => '*'
-     *    ':from' => 'paragraphs',
-     *    ':order' => 'index ASC',
-     *    ':tql:rel:words' => [
-     *      ':tql:parent:paragraph_id' => 'id',
-     *      ':select' => '*'
-     *      ':from' => 'words',
-     *      ':order' => 'index ASC',
-     *    ],
-     *  ],
-     * ]
-     * only 3 sql query will be executed
-     *
-     */
-
-        // to pierwsze to tez task, ustawiam task i puszczam process
-        // wyciagam relsy
-        // queue z taskami przetwarzania relsow, task ma path
-        // indeks gdzie co bylo

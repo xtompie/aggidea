@@ -108,9 +108,10 @@ class OrderRepository implements DomainOrderRepository
                                 'id' => $orderProduct->id(),
                             ],
                             'data' => [
+                                'order_id' => $order->id(),
                                 'seller_id' => $orderSeller->sellerId(),
                                 'index' => $index,
-                                'catalogProductId' => $orderProduct->catalogProductId(),
+                                'catalog_product_id' => $orderProduct->catalogProductId(),
                                 'amount' => $orderProduct->amount(),
                             ],
                         ]),
@@ -139,11 +140,12 @@ class OrderRepository implements DomainOrderRepository
                         'products' => [
                             'pql:table' => 'order_products',
                             'pql:identity' => ['id'],
+                            'pql:parent:order_id' => 'order_id',
                             'pql:parent:seller_id' => 'seller_id',
                             'order' => 'index DESC',
                         ],
                     ],
-                ]
+                ],
             ],
         ];
     }
