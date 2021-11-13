@@ -64,87 +64,63 @@ class OrderRepository implements DomainOrderRepository
         $projection = $this->migrate($projection);
 
         return new Order(
-            id: $projection['identity']['id'],
-            status: new OrderStatus($projection['data']['status']),
-            billingAddress: $this->contactAddressSerializer->model($projection['data']['billing_address']),
-            sellers: new OrderSellerCollection(Arr::map($projection['records']['sellers'], fn(array $seller) => new OrderSeller(
-                sellerId: $seller['identity']['seller_id'],
-                status: new OrderSellerStatus($seller['data']['status']),
-                products: new OrderProductCollection(Arr::map($seller['records']['products'], fn(array $product) => new OrderProduct(
-                    id: $product['identity']['id'],
-                    catalogProductId: $product['data']['catalog_product_id'],
-                    amount: $product['data']['amount'],
+            id: $projection['id'],
+            status: new OrderStatus($projection['status']),
+            billingAddress: $this->contactAddressSerializer->model($projection['billing_address']),
+            sellers: new OrderSellerCollection(Arr::map($projection['sellers'], fn(array $seller) => new OrderSeller(
+                sellerId: $seller['seller_id'],
+                status: new OrderSellerStatus($seller['status']),
+                products: new OrderProductCollection(Arr::map($seller['products'], fn(array $product) => new OrderProduct(
+                    id: $product['id'],
+                    catalogProductId: $product['catalog_product_id'],
+                    amount: $product['amount'],
                 ))),
             ))),
         );
     }
 
-
     public function projection(Order $order): array
     {
         return [
-            'table' => 'orders',
-            'identity' => [
-                'id' => $order->id(),
-            ],
-            'data' => [
-                'billing_address' => $this->contactAddressSerializer->primitive($order->billingAddress()),
-            ],
-            'records' => [
-                'sellers' => Arr::map($order->sellers()->all(), fn(OrderSeller $orderSeller, $index) => [
-                    'table' => 'order_seller',
-                    'identity' => [
-                        'order_id' => $order->id(),
-                        'seller_id' => $orderSeller->sellerId(),
-                    ],
-                    'data' => [
-                        'index' => $index,
-                        'status' => $orderSeller->status()->__toString(),
-                    ],
-                    'records' => [
-                        'products' => Arr::map($orderSeller->products()->all(), fn(OrderProduct $orderProduct, $index) => [
-                            'table' => 'order_products',
-                            'identity' => [
-                                'id' => $orderProduct->id(),
-                            ],
-                            'data' => [
-                                'order_id' => $order->id(),
-                                'seller_id' => $orderSeller->sellerId(),
-                                'index' => $index,
-                                'catalog_product_id' => $orderProduct->catalogProductId(),
-                                'amount' => $orderProduct->amount(),
-                            ],
-                        ]),
-                    ],
+            ':table' => 'orders',
+            'id' => $order->id(),
+            'billing_address' => $this->contactAddressSerializer->primitive($order->billingAddress()),
+            'sellers' => Arr::map($order->sellers()->all(), fn(OrderSeller $orderSeller, $index) => [
+                ':table' => 'order_seller',
+                'id' => $order->id() . ':' . $orderSeller->sellerId(),
+                'order_id' => $order->id(),
+                'seller_id' => $orderSeller->sellerId(),
+                'index' => $index,
+                'status' => $orderSeller->status()->__toString(),
+                'products' => Arr::map($orderSeller->products()->all(), fn(OrderProduct $orderProduct, $index) => [
+                    ':table' => 'order_products',
+                    'id' => $orderProduct->id(),
+                    'order_id' => $order->id(),
+                    'seller_id' => $orderSeller->sellerId(),
+                    'index' => $index,
+                    'catalog_product_id' => $orderProduct->catalogProductId(),
+                    'amount' => $orderProduct->amount(),
                 ]),
-            ],
+            ]),
         ];
     }
 
     protected function query(?array $where = null, ?string $order = null, ?int $limit = null, ?int $offset = null): array
     {
         return [
-            'pql:from' => 'orders',
+            'from' => 'orders',
             'where' => $where,
             'order' => $order,
             'limit' => $limit,
             'offset' => $offset,
-            'pql:identity' => ['id'],
-            'pql:records' => [
-                'sellers' => [
-                    'pql:table' => 'order_seller',
-                    'pql:parent:order_id' => 'id',
-                    'pql:identity' => ['order_id', 'seller_id'],
+            'pql:children:sellers' => [
+                'from' => 'order_seller',
+                'order' => 'index DESC',
+                'pql:parent' => 'order_id',
+                'pql:children:products' => [
+                    'from' => 'order_products',
+                    'pql:parent' => 'order_seller_id',
                     'order' => 'index DESC',
-                    'pql:records' => [
-                        'products' => [
-                            'pql:table' => 'order_products',
-                            'pql:identity' => ['id'],
-                            'pql:parent:order_id' => 'order_id',
-                            'pql:parent:seller_id' => 'seller_id',
-                            'order' => 'index DESC',
-                        ],
-                    ],
                 ],
             ],
         ];

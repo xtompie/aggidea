@@ -26,13 +26,13 @@ class ProjectionPresister
     public function synchronizeRecords(array $present, array $future)
     {
         foreach ($this->computeInserts($present, $future) as $r) {
-            $this->dao->insert($r['table'], $r['identity'], $r['data']);
+            $this->dao->insert($r['table'], $r['id'], $r['data']);
         }
         foreach ($this->computeUpdates($present, $future) as $r) {
-            $this->dao->update($r['table'], $r['identity'], $r['data']);
+            $this->dao->update($r['table'], $r['id'], $r['data']);
         }
         foreach ($this->computeDeletes($present, $future) as $r) {
-            $this->dao->delete($r['table'], $r['identity']);
+            $this->dao->delete($r['table'], $r['id']);
         }
     }
 
@@ -44,9 +44,11 @@ class ProjectionPresister
 
         $records = $this->record($projection);
 
-        foreach ($projection['records'] ?? [] as $value) {
-            foreach ($value as $child) {
-                $records += $this->records($child);
+        foreach ($projection as $projection_value) {
+            if (is_array($projection_value)) {
+                foreach ($projection_value as $child) {
+                    $records += $this->records($child);
+                }
             }
         }
 
@@ -55,12 +57,22 @@ class ProjectionPresister
 
     protected function record($projection): array
     {
+        $table = $projection[':table'];
+        $id = $projection['id'];
+        unset($projection[':table'], $projection['id']);
+        foreach ($projection as $key => $value) {
+            if (is_array($value)) {
+                unset($projection[$key]);
+            }
+        }
+        $data = $projection;
+
         return [
-            sha1(serialize([$projection['table'], $projection['identity']])) => [
-                'table' => $projection['table'],
-                'identity' => $projection['identity'],
-                'data' => $projection['data'] ?? [],
-                'state' => sha1(serialize($projection['data']))
+            $table . ':' . $id => [
+                'table' => $table,
+                'id' => $id,
+                'data' => $data,
+                'state' => sha1(serialize($data)),
             ]
         ];
     }

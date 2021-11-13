@@ -6,9 +6,11 @@ namespace Xtompie\Aggidea\Shared\Infrastructure;
 
 class ProjectionFetcher
 {
-    protected callable $fetcher;
+    protected $fetcher;
 
     public function __construct(
+        protected AQL $aql,
+        protected DAO $dao,
     ) {}
 
     public function fetch(array $pql): ?array
@@ -18,56 +20,56 @@ class ProjectionFetcher
 
     public function fetchAll(array $pql): array
     {
-        $projections = [];
-        foreach ($this->findTasks($pql, '*') as $task) {
-            $this->processTask($projections, $task);
-        }
-
-        // $this->process(null, $projections, $pql);
-        return [];
+        return $this->pql($pql, []);
     }
 
-    protected function findTasks($pql, $path)
+    protected function pql(array $pql, array $parents): array
     {
-        $tasks[] = $this->createTask($pql, $path);
-        foreach((array) $pql['pql:records'] as $records) {
-            foreach($records as $records_name => $records_pql) {
-                $tasks[] = $this->findTasks($records_pql, $path . '.records.' . $records_name . '.*');
+        $projections = $this->dao->query($this->query($pql, $parents));
+
+        foreach ($pql as $key => $value) {
+            if (str_starts_with($key, 'pql:children:')) {
+                $projections = $this->children(
+                    $projections,
+                    substr($key, strlen('pql:children:')),
+                    $value,
+                    array_column($projections, 'id')
+                );
             }
         }
-        return $tasks;
+
+        return $projections;
     }
 
-    protected function createTask($pql, $path)
+    protected function children($results, $field, $pql, $ids)
     {
-        $task = [
-            'query' => $pql,
-            'identity' => $pql['pql:identity'],
-            'path' => $path,
-            'parent' => [],
-        ];
-        if (!isset($task['query']['select'])) {
-            $task['query']['select'] = '*';
-        }
-        if (isset($task['query']['pql:table'])) {
-            $task['query']['from'] = $task['query']['pql:table'];
+        $children = $this->pql($pql, $ids);
+        $pql_parent = $pql['pql:parent'];
+
+        return Arr::map($results, fn($result) =>
+            $result + [$field => Arr::where($children, $pql_parent, $result['id'])]
+        );
+
+    }
+
+    protected function query($pql, $parents): string
+    {
+        $query = $pql;
+
+        if (!isset($query['select'])) {
+            $query['select'] = '*';
         }
 
-        $parent_prefix = 'pql:parent:';
-        foreach ($task['query'] as $k => $v) {
-            if (!str_starts_with($k, $parent_prefix)) {
-                continue;
+        foreach ($query as $key => $value) {
+            if (str_starts_with($key, 'pql:')) {
+                unset($query[$key]);
             }
-            $task['parent'][substr($k, strlen($parent_prefix))] = $v;
-            unset($task['query'][$k]);
         }
-        unset($task['query']['pql:table'], $task['query']['pql:identity']);
 
-        return $task;
-    }
+        if (isset($pql['pql:parent'])) {
+            $query['where'][$pql['pql:parent'] . ':in'] = $parents;
+        }
 
-    protected function processTask(&$projections, $task)
-    {
-
+        return $query;
     }
 }
