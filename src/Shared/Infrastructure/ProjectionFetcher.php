@@ -26,15 +26,12 @@ class ProjectionFetcher
     protected function pql(array $pql, array $parents): array
     {
         $projections = $this->dao->query($this->query($pql, $parents));
+        $ids = array_column($projections, 'id');
 
         foreach ($pql as $key => $value) {
             if (str_starts_with($key, 'pql:children:')) {
-                $projections = $this->children(
-                    $projections,
-                    substr($key, strlen('pql:children:')),
-                    $value,
-                    array_column($projections, 'id')
-                );
+                $field = substr($key, strlen('pql:children:'));
+                $projections = $this->children($projections, $field, $value, $ids);
             }
         }
 
@@ -47,9 +44,8 @@ class ProjectionFetcher
         $pql_parent = $pql['pql:parent'];
 
         return Arr::map($results, fn($result) =>
-            $result + [$field => Arr::where($children, $pql_parent, $result['id'])]
+            $result + [$field => array_filter($children, fn($child) => $child[$pql_parent] == $result['id'])]
         );
-
     }
 
     protected function query($pql, $parents): string
