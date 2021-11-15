@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Xtompie\Aggidea\Ordering\Infrastructure;
 
+use Xtompie\Aggidea\Core\Arr;
+use Xtompie\Aggidea\Core\ProjectionFetcher;
+use Xtompie\Aggidea\Core\ProjectionPresister;
 use Xtompie\Aggidea\Ordering\Domain\OrderRevision;
 use Xtompie\Aggidea\Ordering\Domain\OrderRevisionCollection;
 use Xtompie\Aggidea\Ordering\Domain\OrderRevisionRepository as DomainOrderRevisionRepository;
 use Xtompie\Aggidea\Shared\Domain\Time;
-use Xtompie\Aggidea\Shared\Infrastructure\Arr;
-use Xtompie\Aggidea\Shared\Infrastructure\OrderSerializer;
-use Xtompie\Aggidea\Shared\Infrastructure\ProjectionFetcher;
-use Xtompie\Aggidea\Shared\Infrastructure\ProjectionPresister;
 
 class OrderRevisionRepository implements DomainOrderRevisionRepository
 {
@@ -53,7 +52,7 @@ class OrderRevisionRepository implements DomainOrderRevisionRepository
         );
     }
 
-    public function aggregate(array $projection): OrderRevision
+    protected function aggregate(array $projection): OrderRevision
     {
         $projection = $this->migrate($projection);
 
@@ -64,7 +63,7 @@ class OrderRevisionRepository implements DomainOrderRevisionRepository
         );
     }
 
-    public function projection(OrderRevision $orderRevision): array
+    protected function projection(OrderRevision $orderRevision): array
     {
         return [
             ':table' => 'order_revisions',

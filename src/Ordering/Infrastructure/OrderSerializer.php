@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Xtompie\Aggidea\Shared\Infrastructure;
+namespace Xtompie\Aggidea\Ordering\Infrastructure;
 
 use Xtompie\Aggidea\Ordering\Domain\Order;
 use Xtompie\Aggidea\Ordering\Infrastructure\OrderRepository;

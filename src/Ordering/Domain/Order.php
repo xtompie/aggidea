@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Xtompie\Aggidea\Ordering\Domain;
 
-use Xtompie\Aggidea\Shared\Domain\Aggregate;
 use Xtompie\Aggidea\Shared\Domain\ContactAddress;
 
 class Order
@@ -13,6 +12,7 @@ class Order
         protected string $id,
         protected OrderStatus $status,
         protected ContactAddress $billingAddress,
+        protected DeliveryMethod $deliveryMethod,
         protected OrderSellerCollection $sellers,
     ) {}
 
@@ -26,9 +26,19 @@ class Order
         return $this->status;
     }
 
+    public function paymentStatus(): OrderStatus
+    {
+        return $this->status;
+    }
+
     public function billingAddress(): ContactAddress
     {
         return $this->billingAddress;
+    }
+
+    public function deliveryMethod(): DeliveryMethod
+    {
+        return $this->deliveryMethod;
     }
 
     public function sellers(): OrderSellerCollection

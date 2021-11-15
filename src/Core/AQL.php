@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Xtompie\Aggidea\Shared\Infrastructure;
+namespace Xtompie\Aggidea\Core;
 
 /**
  * Array Command Query Language

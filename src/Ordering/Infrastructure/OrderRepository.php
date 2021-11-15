@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Xtompie\Aggidea\Ordering\Infrastructure;
 
+use Xtompie\Aggidea\Core\Arr;
+use Xtompie\Aggidea\Core\ProjectionFetcher;
+use Xtompie\Aggidea\Core\ProjectionPresister;
 use Xtompie\Aggidea\Ordering\Domain\Order;
 use Xtompie\Aggidea\Ordering\Domain\OrderCollection;
 use Xtompie\Aggidea\Ordering\Domain\OrderProduct;
@@ -13,10 +16,8 @@ use Xtompie\Aggidea\Ordering\Domain\OrderSeller;
 use Xtompie\Aggidea\Ordering\Domain\OrderSellerCollection;
 use Xtompie\Aggidea\Ordering\Domain\OrderSellerStatus;
 use Xtompie\Aggidea\Ordering\Domain\OrderStatus;
-use Xtompie\Aggidea\Shared\Infrastructure\Arr;
 use Xtompie\Aggidea\Shared\Infrastructure\ContactAddressSerializer;
-use Xtompie\Aggidea\Shared\Infrastructure\ProjectionFetcher;
-use Xtompie\Aggidea\Shared\Infrastructure\ProjectionPresister;
+use Xtompie\Aggidea\Shared\Infrastructure\Tenant;
 
 class OrderRepository implements DomainOrderRepository
 {
@@ -24,6 +25,7 @@ class OrderRepository implements DomainOrderRepository
         protected ContactAddressSerializer $contactAddressSerializer,
         protected ProjectionFetcher $projectionFetcher,
         protected ProjectionPresister $projectionPresister,
+        protected Tenant $tenant,
     ) {}
 
     public function findById(string $id): ?Order
@@ -67,6 +69,7 @@ class OrderRepository implements DomainOrderRepository
             id: $projection['id'],
             status: new OrderStatus($projection['status']),
             billingAddress: $this->contactAddressSerializer->model($projection['billing_address']),
+            deliveryMethod: $projection['delivery_method'],
             sellers: new OrderSellerCollection(Arr::map($projection['sellers'], fn(array $seller) => new OrderSeller(
                 sellerId: $seller['seller_id'],
                 status: new OrderSellerStatus($seller['status']),
@@ -84,14 +87,17 @@ class OrderRepository implements DomainOrderRepository
         return [
             ':table' => 'orders',
             'id' => $order->id(),
+            'tenant' => $this->tenant->id(),
             'billing_address' => $this->contactAddressSerializer->primitive($order->billingAddress()),
+            'status' => $order->status()->__toString(),
+            'delivery_method' => $order->deliveryMethod()->__toString(),
+            'version' => 2,
             'sellers' => Arr::map($order->sellers()->all(), fn(OrderSeller $orderSeller, $index) => [
                 ':table' => 'order_seller',
                 'id' => $order->id() . ':' . $orderSeller->sellerId(),
                 'order_id' => $order->id(),
                 'seller_id' => $orderSeller->sellerId(),
                 'index' => $index,
-                'status' => $orderSeller->status()->__toString(),
                 'products' => Arr::map($orderSeller->products()->all(), fn(OrderProduct $orderProduct, $index) => [
                     ':table' => 'order_products',
                     'id' => $orderProduct->id(),
@@ -109,7 +115,7 @@ class OrderRepository implements DomainOrderRepository
     {
         return [
             'from' => 'orders',
-            'where' => $where,
+            'where' => ['tenant_id' => $this->tenant->id()] + (array)$where,
             'order' => $order,
             'limit' => $limit,
             'offset' => $offset,
@@ -128,6 +134,12 @@ class OrderRepository implements DomainOrderRepository
 
     protected function migrate(array $projection): array
     {
+        $version = $projection['version'] ?? 1;
+
+        if ($version < 2)  {
+            $projection['delivery_method'] = 'pickup';
+        }
+
         return $projection;
     }
 }

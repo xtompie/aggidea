@@ -23,14 +23,14 @@ class CheckoutRepository implements DomainCheckoutRepository
         $_SESSION['checkout'][$checkout->id()] = $this->tuple($checkout);
     }
 
-    public function aggregate(array $tuple): Checkout
+    protected function aggregate(array $tuple): Checkout
     {
         return new Checkout(
             id: $tuple['id'],
         );
     }
 
-    public function tuple(Checkout $checkout): array
+    protected function tuple(Checkout $checkout): array
     {
         return [
             'id' => $checkout->id(),
