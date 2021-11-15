@@ -58,36 +58,30 @@ class OrderRevisionRepository implements DomainOrderRevisionRepository
         $projection = $this->migrate($projection);
 
         return new OrderRevision(
-            id: $projection['identity']['id'],
-            createdAt: new Time($projection['data']['created_at']),
-            order: $this->orderSerializer->model($projection['data']['order']),
+            id: $projection['id'],
+            createdAt: new Time($projection['created_at']),
+            order: $this->orderSerializer->model($projection['order']),
         );
     }
 
     public function projection(OrderRevision $orderRevision): array
     {
         return [
-            'table' => 'order_revisions',
-            'identity' => [
-                'id' => $orderRevision->id(),
-            ],
-            'data' => [
-                'created_at' => $orderRevision->createdAt()->__toString(),
-                'order' => $this->orderSerializer->primitive($orderRevision->order()),
-            ],
+            ':table' => 'order_revisions',
+            'id' => $orderRevision->id(),
+            'created_at' => $orderRevision->createdAt()->__toString(),
+            'order' => $this->orderSerializer->primitive($orderRevision->order()),
         ];
     }
 
     protected function query(?array $where = null, ?string $order = null, ?int $limit = null, ?int $offset = null): array
     {
         return [
-            'select' => '*',
             'from' => 'order_revisions',
             'where' => $where,
             'order' => $order,
             'limit' => $limit,
             'offset' => $offset,
-            'pql:identity' => ['id'],
         ];
     }
 

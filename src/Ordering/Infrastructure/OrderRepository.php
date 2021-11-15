@@ -28,7 +28,7 @@ class OrderRepository implements DomainOrderRepository
 
     public function findById(string $id): ?Order
     {
-        $projection = $this->projectionFetcher->fetch($this->query() + ['where' => ['id' => $id]]);
+        $projection = $this->projectionFetcher->fetch($this->query(['id' => $id]));
         if (!$projection) {
             return null;
         }
