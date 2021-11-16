@@ -1,5 +1,7 @@
 # Aggidea
 
+> :warning: **DRAFT** this code dosent work currently, its only a draft
+
 ## Projection
 
 Projection is a special data struct containing only PHP primitives.
@@ -65,7 +67,7 @@ ProjectionFetcher gives list of projeciton. We need first. Next the domain objec
 
 ## Generating Aggregate IDs
 
-Domain generates aggregates IDs.
+Domain generates aggregates IDs. Domain object are always valid. Entity without id is not valid.
 
 ## Local entity id in aggregate
 
@@ -170,4 +172,38 @@ OrderSerializer uses OrderRepository->aggregate() where data migration is done.
 ## TODO
 
 - optimistic locking mechanism
+
+## Thoughts
+
+### Merge Projection Presister nad Fetcher
+
+Usually repository preists and loads agregates.
+Maybe `ProjectionDAO`. Trying to not using `Manger` word.
+Merge or just create Facade.
+`DAO` stands for data access, and `Manager` nobody knows what exacly it is doing.
+
+### Clear/onion/hexagonal architecture
+
+In this idea the domain dont know nothing about infrastrucure.
+No annotations/attributes in domain.
+For each aggregate mapping must by done.
+But its simple task.
+
+When we need set/get private/protected property reflection mechnism must be used.
+Or we can break the clear architecure and add public setter/getter.
+
+### Abstract Repostiory
+
+Currently dont see any need to create some abstract repository class.
+In this solution repository is simple and elastic.
+Some times function `aggregate` can be public like in OrderRepository, where is used by OrderSerializer.
+
+Sometimes we can have Domain object `Node` that will have method `childNodes(): NodeCollection`.
+The method `aggregate` can have some protected recursive method to build the aggregate.
+Then the migration can work in recursive method only one node not on all projection.
+The `migration` method can by optional added only when there is a need for this.
+
+### AQL, PQL, ProjectionPresisterDAO, DAO, PDO
+
+Currently, the Presiter layer is shredded into small pieces. Maybe someone wants to use some ORM for this.
 
