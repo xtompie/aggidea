@@ -10,11 +10,25 @@ class ProjectionPresister
         protected ProjectionPresisterDAO $dao,
     ) {}
 
-    public function presist(?array $future, callable $presentProvider)
+    public function presist(array $future, callable $presentProvider)
     {
         $this->dao->transaction(function () use ($future, $presentProvider) {
             $present = $presentProvider();
+            if ($present === null) {
+                return;
+            }
             $this->synchronizeProjections($present, $future);
+        });
+    }
+
+    public function remove(callable $presentProvider)
+    {
+        $this->dao->transaction(function () use ($presentProvider) {
+            $present = $presentProvider();
+            if ($present === null) {
+                return;
+            }
+            $this->synchronizeProjections($present, null);
         });
     }
 

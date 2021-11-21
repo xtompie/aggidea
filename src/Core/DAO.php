@@ -41,9 +41,15 @@ class DAO
 
     public function transaction(callable $callback)
     {
+        if ($this->pdo->inTransaction()) {
+            $callback();
+            return;
+        }
+
         if (!$this->pdo->beginTransaction()) {
             throw new Exception();
         }
+
         try {
             $callback();
             $this->pdo->commit();

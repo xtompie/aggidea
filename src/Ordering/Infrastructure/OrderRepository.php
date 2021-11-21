@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Xtompie\Aggidea\Ordering\Infrastructure;
 
 use Xtompie\Aggidea\Core\Arr;
-use Xtompie\Aggidea\Core\ProjectionFetcher;
-use Xtompie\Aggidea\Core\ProjectionPresister;
+use Xtompie\Aggidea\Core\ProjectionDAO;
 use Xtompie\Aggidea\Ordering\Domain\Order;
 use Xtompie\Aggidea\Ordering\Domain\OrderCollection;
 use Xtompie\Aggidea\Ordering\Domain\OrderProduct;
@@ -23,14 +22,13 @@ class OrderRepository implements DomainOrderRepository
 {
     public function __construct(
         protected ContactAddressSerializer $contactAddressSerializer,
-        protected ProjectionFetcher $projectionFetcher,
-        protected ProjectionPresister $projectionPresister,
+        protected ProjectionDAO $projectionDAO,
         protected Tenant $tenant,
     ) {}
 
     public function findById(string $id): ?Order
     {
-        $projection = $this->projectionFetcher->fetch($this->query(['id' => $id]));
+        $projection = $this->projectionDAO->fetch($this->query(['id' => $id]));
         if (!$projection) {
             return null;
         }
@@ -40,24 +38,31 @@ class OrderRepository implements DomainOrderRepository
     public function findAll(?array $where = null, ?string $order = null, ?int $limit = null, ?int $offset = null): OrderCollection
     {
         return new OrderCollection(Arr::map(
-            $this->projectionFetcher->fetchAll($this->query($where, $order, $limit, $offset)),
+            $this->projectionDAO->fetchAll($this->query($where, $order, $limit, $offset)),
             fn(array $projection) => $this->aggregate($projection),
         ));
     }
 
     public function save(Order $order)
     {
-        $this->projectionPresister->presist(
+        $this->projectionDAO->presist(
             $this->projection($order),
-            fn() => $this->projection($this->findById($order->id()))
+            $this->presentProjectionProvider($order),
         );
+    }
+
+    protected function presentProjectionProvider(Order $order): callable
+    {
+        return function () use ($order) {
+            $order = $this->findById($order->id());
+            return $order ? $this->projection($order) : null;
+        };
     }
 
     public function remove(Order $order)
     {
-        $this->projectionPresister->presist(
-            null,
-            fn() => $this->projection($this->findById($order->id()))
+        $this->projectionDAO->remove(
+            $this->presentProjectionProvider($order),
         );
     }
 
